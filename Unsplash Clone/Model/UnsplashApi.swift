@@ -40,6 +40,7 @@ enum URLRequestError: Error {
       case requestFailed
       case requestDecodingFailed
       case urlCreationFailed
+      case keyNotFound
   }
 
 struct UnsplashApi {
@@ -48,7 +49,10 @@ struct UnsplashApi {
     
     // MARK: Since the data returned is an Array we need to add that in the Decoder and returned value
     func randomPhotos() async throws -> [UnsplashResponse]  {
-       guard let url = URL(string: "https://api.unsplash.com/photos/random/?client_id=SWB8YPEpLu8LavcGSbtLf73FOeOrMxIi2VqSHj0M2OA&count=10") else {
+        guard let unsplash_auth_key = ProcessInfo.processInfo.environment["UNSPLASH_API"] else {
+            throw URLRequestError.keyNotFound
+        }
+       guard let url = URL(string: "https://api.unsplash.com/photos/random/?client_id=\(unsplash_auth_key)&count=10") else {
            throw URLRequestError.urlCreationFailed
        }
 
