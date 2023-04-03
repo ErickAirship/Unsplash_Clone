@@ -11,17 +11,17 @@ class ViewController: UITabBarController, UITabBarControllerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        navigationItem.rightBarButtonItem = profileButton
-
+        setupFeaturedViewController()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+    func setupFeaturedViewController() {
+        navigationItem.rightBarButtonItem = profileButton
         let featuredController = FeaturedViewController()
         let featuredIcon = UITabBarItem(title: nil, image: UIImage(systemName: "star"), selectedImage: UIImage(systemName: "star.fill"))
         featuredController.tabBarItem = featuredIcon
         let favoritesController = FavoritesViewController()
         let favoritesIcon = UITabBarItem(title: nil, image: UIImage(systemName: "heart"), selectedImage: UIImage(systemName: "heart.fill"))
+        
         favoritesController.tabBarItem = favoritesIcon
         tabBar.tintColor = .white
         tabBar.barTintColor = .white
@@ -29,11 +29,6 @@ class ViewController: UITabBarController, UITabBarControllerDelegate {
         
         viewControllers = [featuredController, favoritesController]
     }
-    
-    
-
-
-
 }
 
 

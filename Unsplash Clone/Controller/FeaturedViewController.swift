@@ -8,10 +8,11 @@
 import UIKit
 
 class FeaturedViewController: UIViewController {
-   private let featuredView = TabView()
-   private let API: UnsplashApi = UnsplashApi()
-
-
+    private let featuredView = TabView()
+    private let API: UnsplashApi = UnsplashApi()
+    private var isLoading = false
+    var photos: [UnsplashResponse] = []
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // view.backgroundColor = .black
@@ -20,6 +21,7 @@ class FeaturedViewController: UIViewController {
         // MARK: Need to set these here since collection view is defined in UIView class and loaded
         featuredView.photosCollection.delegate = self
         featuredView.photosCollection.dataSource = self
+        featuredView.photosCollection.prefetchDataSource = self
         view = featuredView
        fetchRandomPhotos()
     }
@@ -27,8 +29,10 @@ class FeaturedViewController: UIViewController {
     private func fetchRandomPhotos() {
         Task {
             do {
-                let photos = try await API.randomPhotos()
-               
+                isLoading = true
+                photos = try await API.randomPhotos()
+                isLoading = false
+
                 await MainActor.run {
                     featuredView.setPhotosCollection(photos:photos)
                 
@@ -49,7 +53,8 @@ extension FeaturedViewController: UICollectionViewDataSource, UICollectionViewDe
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoId", for: indexPath) as! ImageViewCell
-        cell.data = featuredView.photosData[indexPath.item]
+        let imageUrl = featuredView.photosData[indexPath.item].urls.full
+        cell.setImage(urlString: imageUrl)
         cell.layer.shouldRasterize = true
         cell.layer.rasterizationScale = UIScreen.main.scale
         return cell
@@ -64,5 +69,12 @@ extension FeaturedViewController: UICollectionViewDataSource, UICollectionViewDe
         
         return CGSize(width: cellWidth, height: cellHeight)
     }
-    
+}
+
+extension FeaturedViewController: UICollectionViewDataSourcePrefetching {
+    func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
+        if let lastIndexPath = indexPaths.last, lastIndexPath.item >= photos.count - 1, !isLoading {
+            fetchRandomPhotos()
+        }
+    }
 }

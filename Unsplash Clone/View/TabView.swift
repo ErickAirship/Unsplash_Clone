@@ -6,7 +6,7 @@
 //
 
 import UIKit
-
+import Kingfisher
 
 class TabView: UIView {
     // MARK: Needed to collect the photos passed in the view controller
@@ -76,31 +76,26 @@ class TabView: UIView {
         photosCollection.widthAnchor.constraint(equalTo: widthAnchor).isActive = true
         photosCollection.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
     }
-    
-    
-    
 }
 
-class ImageViewCell:UICollectionViewCell {
-    
-    
-    var data: UnsplashResponse? {
-        didSet {
-            guard let data = data else { return }
-            guard let url = URL(string: data.urls.full) else {
-                return
-            }
-            let session = URLSession.shared.dataTask(with: url) { data,_,_  in
-                if let data = data {
-                    DispatchQueue.main.async {
-                        self.imageContainer.image = UIImage(data: data)
-                    }
-                }
-            }
-            
-            session.resume()
-            
-        }
+class ImageViewCell: UICollectionViewCell {
+    func setImage(urlString: String) {
+        guard let url = URL(string: urlString), imageContainer.image == nil else { return }
+        
+        //Ideally downsampling would be done by passing into the URL param.
+        //By passing in bounds.size.width/bounds.size.height
+        
+        let processor = DownsamplingImageProcessor(size: bounds.size)
+                     |> RoundCornerImageProcessor(cornerRadius: 12)
+        
+        imageContainer.kf.indicatorType = .activity
+        imageContainer.kf.setImage(
+            with: url,
+            options: [
+                .processor(processor),
+                .scaleFactor(UIScreen.main.scale),
+                .transition(.fade(1)),
+            ])
     }
     
     let imageContainer: UIImageView = {
